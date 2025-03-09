@@ -12,7 +12,8 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from selenium.webdriver.common.print_page_options import PrintOptions
+import base64
 
 downloadDefaultDirectory = '.'
 headlessmode = False
@@ -437,6 +438,30 @@ function qmRec() {
 except TimeoutException as e:
     print("Couldn't find: " + str("load_more"))
     pass
+
+RATIO_MULTIPLIER = 2.5352112676056335
+
+# Function to find page size
+S = lambda X: driver.execute_script('return document.body.parentNode.scroll'+X)
+
+# Scale for PDF size. 1 for no change takes long time
+pdf_scaler = .01
+
+height = S('Height')
+weight = S('Width')
+
+# Dynamic setting of PDF page dimensions
+print_options = PrintOptions()
+print_options.page_height = (height*pdf_scaler)*RATIO_MULTIPLIER
+print_options.page_width = (weight*pdf_scaler)*RATIO_MULTIPLIER
+print_options.shrink_to_fit = True
+
+# Prints to PDF (returns base64 encoded data. Must save)
+pdf = driver.print_page(print_options=print_options)
+
+# save the output to a file.
+with open('example.pdf', 'wb') as file:
+    file.write(base64.b64decode(pdf))
 
 time.sleep(999999)
 
